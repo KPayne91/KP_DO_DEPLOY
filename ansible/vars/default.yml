@@ -1,0 +1,14 @@
+---
+#System Settings
+php_modules: [ 'php-curl', 'php-gd', 'php-mbstring', 'php-xml', 'php-xmlrpc', 'php-soap', 'php-intl', 'php-zip' ]
+
+#MySQL Settings
+mysql_root_password: "Fullsail1!"
+mysql_db: "wordpress"
+mysql_user: "SET_SQL_USER"
+mysql_password: "SET_SQL_PASSWORD"
+
+#HTTP Settings
+http_host: "SITE_NAME"
+http_conf: "SITE_NAME.conf"
+http_port: "80"
