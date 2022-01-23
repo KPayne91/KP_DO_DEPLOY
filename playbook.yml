@@ -1,21 +1,22 @@
+#test
 ---
 - hosts: localhost
   vars:
-    digital_ocean_token: PASTE TOKEN HERE
+    digital_ocean_token: 9a988544e9e390b8f623932c4b4d0932c1d306e029284b2f905809ed78d81966
     droplet_size: s-1vcpu-1gb
     droplet_region: nyc1
     droplet_image: ubuntu-20-04-x64
   tasks:
 
-  - name: Add public ssh key to DigitalOcean account
+  - name: "add public ssh key to digitalocean account"
     digital_ocean_sshkey:
-      name: "NAME_YOUR_TOKEN"
+      name: "Kyle-Payne-2201"
       oauth_token: "{{ digital_ocean_token }}"
       ssh_pub_key: "{{lookup('file', '/root/.ssh/id_rsa.pub') }}"
       state: present
     register: sshkey_result
 
-  - name: Create a new droplet assigning the key
+  - name: create a new droplet assigning the key
     digital_ocean_droplet:
       name: "{{ item }}"
       oauth_token: "{{ digital_ocean_token }}"
@@ -50,17 +51,14 @@
   tasks:
     - name: Install prerequisites
       apt: name=aptitude update_cache=yes state=latest force_apt_get=yes
-      tags: [ system ]
 
     - name: Install LAMP Packages
       apt: name={{ item }} update_cache=yes state=latest
       loop: [ 'apache2', 'mysql-server', 'python3-pymysql', 'php', 'php-mysql', 'libapache2-mod-php' ]
-      tags: [ system ]
 
     - name: Install PHP Extensions
       apt: name={{ item }} update_cache=yes state=latest
       loop: "{{ php_modules }}"
-      tags: [ system ]
 
   # Apache Configuration
     - name: Create document root
@@ -70,29 +68,24 @@
         owner: "www-data"
         group: "www-data"
         mode: '0755'
-      tags: [ apache ]
 
     - name: Set up Apache VirtualHost
       template:
         src: "files/apache.conf.j2"
         dest: "/etc/apache2/sites-available/{{ http_conf }}"
       notify: Reload Apache
-      tags: [ apache ]
 
     - name: Enable rewrite module
       shell: /usr/sbin/a2enmod rewrite
       notify: Reload Apache
-      tags: [ apache ]
 
     - name: Enable new site
       shell: /usr/sbin/a2ensite {{ http_conf }}
       notify: Reload Apache
-      tags: [ apache ]
 
     - name: Disable default Apache site
       shell: /usr/sbin/a2dissite 000-default.conf
       notify: Restart Apache
-      tags: [ apache ]
 
   # MySQL Configuration
     - name: Set the root password
@@ -100,7 +93,6 @@
         name: root
         password: "{{ mysql_root_password }}"
         login_unix_socket: /var/run/mysqld/mysqld.sock
-      tags: [ mysql, mysql-root ]
 
     - name: Remove all anonymous user accounts
       mysql_user:
@@ -109,7 +101,6 @@
         state: absent
         login_user: root
         login_password: "{{ mysql_root_password }}"
-      tags: [ mysql ]
 
     - name: Remove the MySQL test database
       mysql_db:
@@ -117,7 +108,6 @@
         state: absent
         login_user: root
         login_password: "{{ mysql_root_password }}"
-      tags: [ mysql ]
 
     - name: Create database for WordPress
       mysql_db:
@@ -125,7 +115,6 @@
         state: present
         login_user: root
         login_password: "{{ mysql_root_password }}"
-      tags: [ mysql ]
 
     - name: Create MySQL user for WordPress
       mysql_user:
@@ -135,7 +124,6 @@
         state: present
         login_user: root
         login_password: "{{ mysql_root_password }}"
-      tags: [ mysql ]
 
   # UFW Configuration
     - name: "UFW - Allow HTTP on port {{ http_port }}"
@@ -143,16 +131,8 @@
         rule: allow
         port: "{{ http_port }}"
         proto: tcp
-      tags: [ system ]
 
   # WordPress Configuration
-   # - name: Download and unpack latest WordPress
-     # unarchive:
-    #    src: https://wordpress.org/latest.tar.gz
-   #     dest: "/var/www/{{ http_host }}"
-  #      remote_src: yes
- #       creates: "/var/www/{{ http_host }}/wordpress"
-#      tags: [ wordpress ]
 
     - name: Create clone of latest WordPress
       git:
@@ -160,7 +140,6 @@
          dest: "/var/www/{{ http_host }}/wordpress"
          clone: yes
          update: yes
-      tags: [wordpress]
 
     - name: Set ownership
       file:
@@ -169,21 +148,17 @@
         recurse: yes
         owner: www-data
         group: www-data
-      tags: [ wordpress ]
 
     - name: Set permissions for directories
       shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type d -exec chmod 750 {} \\;"
-      tags: [ wordpress ]
 
     - name: Set permissions for files
       shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type f -exec chmod 640 {} \\;"
-      tags: [ wordpress ]
 
     - name: Set up wp-config
       template:
         src: "files/wp-config.php.j2"
         dest: "/var/www/{{ http_host }}/wordpress/wp-config.php"
-      tags: [ wordpress ]
 
   handlers:
     - name: Reload Apache
