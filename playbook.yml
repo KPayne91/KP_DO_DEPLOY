@@ -1,7 +1,7 @@
 ---
 - hosts: localhost
   vars:
-    digital_ocean_token: 9a988544e9e390b8f623932c4b4d0932c1d306e029284b2f905809ed78d81966
+    digital_ocean_token: <ENTER TOKEN>
     droplet_size: s-1vcpu-1gb
     droplet_region: nyc1
     droplet_image: ubuntu-20-04-x64
